@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>可孚医疗集团税务风险驾驶舱 · 数据指挥舱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg0:#05080f; --bg1:#0a1222; --bg2:#0d1830;
+    --panel:rgba(14,25,46,.72); --panel-solid:#0d1830;
+    --line:rgba(56,189,248,.16); --line-strong:rgba(56,189,248,.34);
+    --text:#e6f1ff; --muted:#8aa4c8; --faint:#5c7191;
+    --cyan:#22d3ee; --cyan2:#38bdf8; --cyan-glow:rgba(34,211,238,.55);
+    --red:#fb4d5c; --red2:#f43f5e; --orange:#fb923c; --amber:#f5b93f;
+    --green:#34d399; --purple:#a78bfa; --blue:#38bdf8;
+    --num:"Rajdhani","DIN Alternate","Bahnschrift","Segoe UI",-apple-system,sans-serif;
+    --cn:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{
+    font-family:var(--cn); color:var(--text); font-size:14px; line-height:1.6;
+    background:
+      radial-gradient(1200px 700px at 12% -10%, rgba(34,211,238,.10), transparent 60%),
+      radial-gradient(1000px 600px at 88% 0%, rgba(56,189,248,.08), transparent 55%),
+      radial-gradient(900px 600px at 50% 120%, rgba(124,58,237,.08), transparent 60%),
+      linear-gradient(180deg, var(--bg1), var(--bg0));
+    background-attachment:fixed;
+    overflow-x:hidden;
+  }
+  /* 网格 + 扫描背景层 */
+  .bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .bg-fx .grid{
+    position:absolute;inset:0;
+    background-image:linear-gradient(rgba(56,189,248,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.05) 1px,transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 78%);
+    mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 78%);
+  }
+  .bg-fx .scan{position:absolute;left:0;right:0;top:-220px;height:220px;
+    background:linear-gradient(180deg,transparent,rgba(34,211,238,.07),transparent);
+    animation:scan 9s linear infinite;}
+  @keyframes scan{0%{transform:translateY(0)}100%{transform:translateY(110vh)}}
+
+  .wrap{position:relative;z-index:1;max-width:1500px;margin:0 auto;padding:22px 28px 70px}
+
+  /* ===== header ===== */
+  header{display:flex;align-items:center;justify-content:space-between;padding:6px 4px 20px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:16px}
+  .logo{position:relative;width:46px;height:46px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;font-weight:700;color:#031018;
+    background:linear-gradient(135deg,var(--cyan),var(--blue));
+    clip-path:polygon(0 0,100% 0,100% 72%,72% 100%,0 100%);
+    box-shadow:0 0 22px var(--cyan-glow);}
+  .brand h1{font-size:22px;font-weight:600;letter-spacing:1px}
+  .brand h1 em{font-style:normal;color:var(--cyan);text-shadow:0 0 16px var(--cyan-glow)}
+  .brand .sub{font-size:12px;color:var(--muted);letter-spacing:.5px;margin-top:2px}
+  .head-right{display:flex;align-items:center;gap:14px}
+  .clock{font-family:var(--num);font-size:15px;color:var(--cyan);letter-spacing:1px;
+    display:flex;align-items:center;gap:8px}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--green)}
+  .live i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.4s ease infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+  .badge{padding:4px 12px;border-radius:4px;font-size:12px;letter-spacing:.5px;
+    border:1px solid var(--line);color:var(--muted);background:rgba(14,25,46,.6)}
+  .badge.sim{color:var(--amber);border-color:rgba(245,185,63,.35);background:rgba(245,185,63,.08)}
+
+  /* ===== tabs ===== */
+  .tabs{display:flex;gap:6px;margin:20px 0 22px;padding:5px;border:1px solid var(--line);border-radius:8px;background:rgba(10,18,34,.6)}
+  .tab{flex:1;text-align:center;padding:11px 6px;border-radius:6px;cursor:pointer;font-size:13.5px;color:var(--muted);transition:.18s;border:1px solid transparent;background:transparent;position:relative;font-family:var(--cn)}
+  .tab .n{font-family:var(--num);font-size:11px;opacity:.6;margin-right:4px;letter-spacing:.5px}
+  .tab:hover{color:var(--text);background:rgba(56,189,248,.06)}
+  .tab.active{color:#031018;background:linear-gradient(135deg,var(--cyan),var(--blue));font-weight:600;box-shadow:0 0 18px var(--cyan-glow)}
+  .tab.active .n{opacity:.9}
+
+  /* ===== 卡片 ===== */
+  .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;
+    backdrop-filter:blur(6px);animation:fadeUp .6s ease both}
+  .card::before,.card::after,.card .c4::before,.card .c4::after{content:"";position:absolute;width:10px;height:10px;border-color:var(--cyan);border-style:solid;opacity:.8}
+  .card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+  .card::after{top:-1px;right:-1px;border-width:2px 2px 0 0}
+  .card .c4{position:absolute;inset:0;pointer-events:none}
+  .card .c4::before{bottom:-1px;left:-1px;border-width:0 0 2px 2px}
+  .card .c4::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+  .card h3{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:14px;letter-spacing:1px;display:flex;align-items:center;gap:8px}
+  .card h3::before{content:"";width:3px;height:14px;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow)}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .grid{display:grid;gap:18px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .muted{color:var(--muted)} .faint{color:var(--faint)}
+
+  /* ===== KPI strip ===== */
+  .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:18px}
+  .kpi{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;overflow:hidden;animation:fadeUp .6s ease both}
+  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--kc,var(--cyan));box-shadow:0 0 10px var(--kc,var(--cyan))}
+  .kpi .k-label{font-size:12px;color:var(--muted);letter-spacing:.5px}
+  .kpi .k-num{font-family:var(--num);font-size:34px;font-weight:700;line-height:1.1;margin-top:6px;
+    color:var(--kc,var(--cyan));text-shadow:0 0 18px var(--kg,var(--cyan-glow));font-variant-numeric:tabular-nums}
+  .kpi .k-num small{font-size:15px;font-weight:600;opacity:.7;margin-left:2px}
+  .kpi .k-sub{font-size:11px;color:var(--faint);margin-top:4px}
+
+  /* ===== 仪表盘 ===== */
+  .gauge-wrap{display:flex;align-items:center;gap:24px}
+  .gauge{position:relative;width:168px;height:168px;flex:none}
+  .gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .gauge .track{stroke:rgba(56,189,248,.1)}
+  .gauge .prog{stroke-linecap:round;transition:stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1);filter:drop-shadow(0 0 8px var(--cyan-glow))}
+  .gauge .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .val b{font-family:var(--num);font-size:44px;font-weight:700;line-height:1;text-shadow:0 0 20px var(--cyan-glow)}
+  .gauge .val span{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px}
+  .gauge-side .pill-lg{font-size:13px;padding:4px 14px;border-radius:20px;font-weight:600;display:inline-block}
+  .gauge-side .delta{margin-top:12px;font-size:12px;color:var(--muted)}
+
+  /* ===== 分布条 ===== */
+  .dist{display:flex;flex-direction:column;gap:14px}
+  .dist .row{display:flex;align-items:center;gap:12px}
+  .dist .dot{width:11px;height:11px;border-radius:3px;flex:none;box-shadow:0 0 8px currentColor}
+  .dist .lab{width:22px;flex:none;font-size:13px;font-weight:600}
+  .dist .bar{flex:1;height:26px;border-radius:5px;overflow:hidden;background:rgba(56,189,248,.06);border:1px solid var(--line);position:relative}
+  .dist .seg{display:flex;align-items:center;justify-content:flex-end;padding-right:8px;height:100%;color:#031018;font-size:12px;font-weight:700;font-family:var(--num);cursor:pointer;transition:width .8s cubic-bezier(.22,1,.36,1),filter .15s}
+  .dist .seg:hover{filter:brightness(1.15)}
+  .legend{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:18px}
+
+  /* ===== 排名 ===== */
+  .rank{display:flex;flex-direction:column;gap:12px}
+  .rank .item{cursor:pointer;padding:4px 0}
+  .rank .row{display:flex;align-items:center;gap:10px;font-size:12px}
+  .rank .name{width:80px;flex:none;font-weight:500;color:var(--text)}
+  .rank .idx{width:18px;flex:none;font-family:var(--num);color:var(--faint);font-weight:700}
+  .rank .track{flex:1;height:16px;background:rgba(56,189,248,.06);border-radius:3px;overflow:hidden}
+  .rank .fill{height:100%;border-radius:3px;transition:width .9s cubic-bezier(.22,1,.36,1);box-shadow:0 0 10px currentColor}
+  .rank .score{width:44px;text-align:right;font-weight:700;font-family:var(--num);font-size:13px}
+  .rank .tag{width:32px;flex:none;text-align:center;font-size:11px;border-radius:4px;padding:2px 0;font-weight:600}
+
+  /* ===== pill ===== */
+  .pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:500}
+  .lv-high{background:rgba(244,63,94,.15);color:#ff7a88;border:1px solid rgba(244,63,94,.3)}
+  .lv-mid{background:rgba(251,146,60,.15);color:#ffb37a;border:1px solid rgba(251,146,60,.3)}
+  .lv-low{background:rgba(52,211,153,.14);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)}
+  .st-pending{background:rgba(251,146,60,.15);color:#ffb37a;border:1px solid rgba(251,146,60,.3)}
+  .st-fixing{background:rgba(56,189,248,.15);color:#7dd3fc;border:1px solid rgba(56,189,248,.3)}
+  .st-closed{background:rgba(52,211,153,.14);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)}
+
+  /* ===== 分类卡片 ===== */
+  .cat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+  .cat-card{position:relative;border-radius:10px;padding:16px 16px 14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);transition:.18s;overflow:hidden}
+  .cat-card::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--cc,var(--cyan));box-shadow:0 0 12px var(--cc,var(--cyan))}
+  .cat-card:hover{transform:translateY(-3px);border-color:var(--cc,var(--cyan));box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .cat-card.active{border-color:var(--cc,var(--cyan));box-shadow:0 0 0 1px var(--cc,var(--cyan)),0 0 24px var(--cc,var(--cyan))}
+  .cat-card .cat-name{font-size:13px;font-weight:600;margin-bottom:8px}
+  .cat-card .cat-score{font-family:var(--num);font-size:32px;font-weight:700;line-height:1;text-shadow:0 0 16px var(--cc,var(--cyan))}
+  .cat-card .cat-meta{font-size:11px;color:var(--muted);margin-top:8px}
+
+  /* ===== 疑点列表 ===== */
+  .issue{display:flex;align-items:center;gap:14px;padding:13px 16px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;background:rgba(14,25,46,.5);transition:.18s;position:relative}
+  .issue:hover{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(34,211,238,.3),0 0 18px rgba(34,211,238,.12);transform:translateX(3px)}
+  .issue .lv{width:40px;flex:none;text-align:center;font-size:12px;font-weight:700;border-radius:5px;padding:3px 0}
+  .issue .main{flex:1;min-width:0}
+  .issue .desc{font-weight:500;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .issue .meta{font-size:12px;color:var(--muted);margin-top:3px}
+  .issue .amt{font-family:var(--num);font-weight:700;font-size:15px;flex:none;text-align:right;color:var(--amber)}
+  .issue .amt small{display:block;font-family:var(--cn);font-weight:400;font-size:11px;color:var(--muted)}
+  .issue .st{flex:none}
+
+  /* ===== 处置泳道 ===== */
+  .lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .lane{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--panel)}
+  .lane .lane-head{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .lane .lane-head b{font-size:14px;display:flex;align-items:center;gap:8px}
+  .lane .lane-head b::before{content:"";width:8px;height:8px;border-radius:2px;background:currentColor;box-shadow:0 0 8px currentColor}
+  .lane .lane-head .cnt{font-family:var(--num);font-size:24px;font-weight:700;line-height:1}
+  .lane .issue{background:rgba(10,18,34,.5);box-shadow:none}
+
+  /* ===== 指标 ===== */
+  .metric-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  .metric-card .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+  .metric-card .head b{font-size:14px}
+  .metric-card .head .cur{font-family:var(--num);font-size:22px;font-weight:700;text-shadow:0 0 14px currentColor}
+  .metric-card svg{width:100%;height:158px}
+  .grid-line{stroke:rgba(56,189,248,.08)}
+
+  select,input{background:var(--panel-solid);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:7px 12px;font-size:13px;font-family:var(--cn);outline:none}
+  select:focus,input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,211,238,.15)}
+  .btn{padding:7px 16px;border-radius:6px;border:1px solid var(--line);background:rgba(14,25,46,.6);font-size:13px;cursor:pointer;color:var(--text);font-family:var(--cn);transition:.15s}
+  .btn:hover{border-color:var(--cyan);color:var(--cyan)}
+  .btn.primary{background:linear-gradient(135deg,var(--cyan),var(--blue));color:#031018;border-color:transparent;font-weight:600}
+
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+
+  /* ===== 表格 ===== */
+  table.ev{width:100%;border-collapse:collapse;font-size:13px}
+  table.ev th{background:rgba(34,211,238,.06);text-align:left;padding:10px 12px;color:var(--cyan);font-weight:600;letter-spacing:.5px;border-bottom:1px solid var(--line-strong);font-size:12px}
+  table.ev td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--text)}
+  table.ev tr:hover td{background:rgba(34,211,238,.04)}
+  table.ev tr:last-child td{border-bottom:none}
+  .num-cell{font-family:var(--num);font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* ===== modal ===== */
+  .mask{position:fixed;inset:0;background:rgba(3,6,12,.72);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px)}
+  .mask.show{display:flex}
+  .modal{background:linear-gradient(180deg,var(--bg2),var(--bg1));border:1px solid var(--line-strong);border-radius:14px;width:800px;max-width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(34,211,238,.1)}
+  .modal .m-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;position:sticky;top:0;background:linear-gradient(180deg,var(--bg2),rgba(13,24,48,.95));z-index:2}
+  .modal .m-title{font-size:16px;font-weight:600;color:var(--text)}
+  .modal .m-meta{font-size:12px;color:var(--muted);margin-top:7px}
+  .modal .m-meta b{color:var(--amber);font-family:var(--num);font-weight:700}
+  .modal .close{border:none;background:transparent;font-size:26px;cursor:pointer;color:var(--muted);line-height:1;transition:.15s}
+  .modal .close:hover{color:var(--red)}
+  .modal .m-body{padding:18px 24px 22px}
+  .ev-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:0}
+  .ev-tab{padding:9px 16px;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;font-family:var(--cn);transition:.15s}
+  .ev-tab:hover{color:var(--text)}
+  .ev-tab.active{color:var(--cyan);border-color:var(--cyan);font-weight:600}
+  .flow-note{margin-top:14px;padding:12px 14px;border-radius:8px;background:rgba(34,211,238,.08);font-size:12px;color:var(--cyan);border:1px solid rgba(34,211,238,.18)}
+
+  .view{display:none}
+  .view.active{display:block}
+  .empty{padding:40px;text-align:center;color:var(--faint)}
+
+  @media(max-width:1000px){
+    .kpi-strip{grid-template-columns:repeat(2,1fr)}
+    .g3,.cat-grid,.lanes,.metric-grid{grid-template-columns:1fr}
+  }
+
+  /* ===== 评分模型 ===== */
+  .model-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .mf-step{position:relative;border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel)}
+  .mf-l{font-family:var(--num);font-size:11px;color:var(--cyan);letter-spacing:1px;margin-bottom:6px}
+  .mf-t{font-size:13.5px;font-weight:600;margin-bottom:8px}
+  .mf-d{font-size:11.5px;color:var(--muted);line-height:1.7;min-height:34px}
+  .formula{margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.16);font-family:var(--num);font-size:12px;color:var(--cyan);letter-spacing:.3px;line-height:1.6}
+  .fx-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .fx-item:last-child{border-bottom:none}
+  .fx-badge{flex:none;font-family:var(--num);font-size:12px;font-weight:700;padding:3px 10px;border-radius:5px;white-space:nowrap}
+
+  /* ===== 路线图 ===== */
+  .timeline{position:relative;padding-left:26px}
+  .timeline::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--cyan),var(--purple));opacity:.4}
+  .tl-item{position:relative;margin-bottom:18px}
+  .tl-item:last-child{margin-bottom:0}
+  .tl-item::before{content:"";position:absolute;left:-22px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan-glow)}
+  .tl-head{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+  .tl-phase{font-family:var(--num);font-weight:700;font-size:15px;color:var(--cyan);text-shadow:0 0 12px var(--cyan-glow)}
+  .tl-name{font-size:15px;font-weight:600}
+  .tl-week{font-size:12px;color:var(--amber);border:1px solid rgba(245,185,63,.3);border-radius:20px;padding:2px 10px;background:rgba(245,185,63,.08)}
+  .tl-desc{font-size:12.5px;color:var(--muted);line-height:1.7}
+  .tl-out{font-size:12px;color:var(--faint);margin-top:4px}
+  .tl-out b{color:var(--text);font-weight:600}
+
+  /* ===== 下钻：三流一致核验 ===== */
+  .ev-map{margin-bottom:14px;padding:12px 14px;border-radius:8px;background:rgba(56,189,248,.05);border:1px solid var(--line)}
+  .em-row{font-size:12.5px;line-height:1.9}
+  .em-row b{color:var(--cyan)}
+  .link-keys{margin-bottom:16px;font-size:12px;color:var(--faint);line-height:1.9}
+  .link-keys code{font-family:var(--num);color:var(--cyan);background:rgba(34,211,238,.08);padding:2px 6px;border-radius:4px;margin:0 2px;font-size:11px}
+  .verify-title{font-size:13px;color:var(--muted);margin:16px 0 10px;letter-spacing:1px;display:flex;align-items:center;gap:8px}
+  .verify-title::before{content:"";width:3px;height:13px;background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow)}
+  .verify{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .v-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:rgba(10,18,34,.5)}
+  .v-name{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .v-result{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .v-dot{width:8px;height:8px;border-radius:50%;flex:none}
+  @media(max-width:1000px){.model-flow{grid-template-columns:1fr}.verify{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bg-fx"><div class="grid"></div><div class="scan"></div></div>
+
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="logo">税</div>
+      <div>
+        <h1>可孚医疗集团税务风险<em>驾驶舱</em></h1>
+        <div class="sub">业 · 财 · 税 · 资 · 档 一体化数智经营 — 税务域风险专题 · TAX RISK COMMAND CENTER</div>
+      </div>
+    </div>
+    <div class="head-right">
+      <span class="live"><i></i>LIVE</span>
+      <span class="clock" id="clock">--:--:--</span>
+      <span class="badge">数据截至 2026-07-31</span>
+      <span class="badge sim">模拟数据</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-v="overview"><span class="n">01</span>集团总览</button>
+    <button class="tab" data-v="category"><span class="n">02</span>风险分类</button>
+    <button class="tab" data-v="progress"><span class="n">03</span>处置进度</button>
+    <button class="tab" data-v="metric"><span class="n">04</span>指标监控</button>
+    <button class="tab" data-v="issues"><span class="n">05</span>疑点下钻</button>
+    <button class="tab" data-v="model"><span class="n">06</span>评分模型</button>
+    <button class="tab" data-v="roadmap"><span class="n">07</span>实施路线图</button>
+  </nav>
+
+  <div id="view-overview" class="view active"></div>
+  <div id="view-category" class="view"></div>
+  <div id="view-progress" class="view"></div>
+  <div id="view-metric" class="view"></div>
+  <div id="view-issues" class="view"></div>
+  <div id="view-model" class="view"></div>
+  <div id="view-roadmap" class="view"></div>
+
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ============ 数据 ============ */
+const CATS = {
+  invoice:{name:'发票风险', weight:25, color:'#fb4d5c'},
+  income:{name:'收入成本风险', weight:20, color:'#fb923c'},
+  prefer:{name:'优惠政策风险', weight:15, color:'#a78bfa'},
+  related:{name:'关联交易风险', weight:20, color:'#38bdf8'},
+  payroll:{name:'个税社保风险', weight:20, color:'#f5b93f'},
+};
+const CAT_ORDER = ['invoice','income','prefer','related','payroll'];
+
+const SUBS = [
+  {id:'hc', name:'华晨制造', industry:'制造业', vat:'13%', rev:45, tax:3.4, gm:22, cost:12, gap:1.5},
+  {id:'rd', name:'瑞达商贸', industry:'批发零售', vat:'13%', rev:60, tax:1.2, gm:8,  cost:6,  gap:6.5},
+  {id:'jg', name:'建工建设', industry:'建筑业', vat:'9%',  rev:80, tax:2.1, gm:11, cost:8,  gap:3.0},
+  {id:'yq', name:'云启软件', industry:'软件信息', vat:'6%',  rev:12, tax:4.2, gm:55, cost:30, gap:2.0},
+  {id:'lh', name:'蓝海服务', industry:'现代服务', vat:'6%',  rev:18, tax:3.0, gm:40, cost:22, gap:5.5},
+  {id:'xl', name:'星链科技', industry:'高新技术', vat:'6%',  rev:25, tax:4.8, gm:48, cost:28, gap:2.5},
+];
+const SUB_SCORES = {
+  hc:{invoice:25, income:30, prefer:20, related:15, payroll:20},
+  rd:{invoice:72, income:58, prefer:25, related:30, payroll:40},
+  jg:{invoice:55, income:68, prefer:20, related:45, payroll:65},
+  yq:{invoice:35, income:30, prefer:62, related:40, payroll:25},
+  lh:{invoice:40, income:60, prefer:25, related:20, payroll:45},
+  xl:{invoice:30, income:35, prefer:70, related:82, payroll:35},
+};
+
+const LV = {high:{name:'高', color:'#f43f5e'}, mid:{name:'中', color:'#fb923c'}, low:{name:'低', color:'#34d399'}};
+const ST = {pending:{name:'待核实', color:'#fb923c'}, fixing:{name:'整改中', color:'#38bdf8'}, closed:{name:'已销号', color:'#34d399'}};
+
+const ISSUES = [
+  {id:1, sub:'rd', cat:'invoice', level:'high', desc:'疑似接受虚开增值税专用发票', amt:1280, status:'pending', owner:'王税务', cp:'宏远贸易有限公司', date:'2026-05-18'},
+  {id:2, sub:'jg', cat:'invoice', level:'mid',  desc:'分包发票合同/发票/资金三流不一致', amt:860, status:'fixing', owner:'李会计', cp:'顺达建筑工程队', date:'2026-04-09'},
+  {id:3, sub:'lh', cat:'invoice', level:'low',  desc:'异常红冲发票比例偏高', amt:230, status:'closed', owner:'赵税务', cp:'多客户零星红冲', date:'2026-03-22'},
+  {id:4, sub:'hc', cat:'invoice', level:'mid',  desc:'集体福利进项转出遗漏', amt:95, status:'pending', owner:'孙会计', cp:'内部食堂采购', date:'2026-06-30'},
+  {id:5, sub:'lh', cat:'income', level:'high', desc:'收入确认滞后 / 疑似隐匿现金收入', amt:1150, status:'fixing', owner:'钱会计', cp:'多家终端客户', date:'2026-02-14'},
+  {id:6, sub:'jg', cat:'income', level:'mid',  desc:'成本结转与工程进度不匹配', amt:2400, status:'pending', owner:'周会计', cp:'在施工程项目', date:'2026-05-05'},
+  {id:7, sub:'rd', cat:'income', level:'mid',  desc:'毛利率异常低于行业均值', amt:3200, status:'pending', owner:'吴会计', cp:'批零业务', date:'2026-06-12'},
+  {id:8, sub:'hc', cat:'income', level:'low',  desc:'样品赠送视同销售漏报', amt:42, status:'closed', owner:'郑会计', cp:'样品赠送', date:'2026-01-20'},
+  {id:9, sub:'xl', cat:'prefer', level:'high', desc:'高新技术企业研发人员占比存疑', amt:1500, status:'pending', owner:'王税务', cp:'资质申报口径', date:'2026-06-01'},
+  {id:10, sub:'yq', cat:'prefer', level:'mid', desc:'软件即征即退与研发辅助账不符', amt:680, status:'fixing', owner:'李会计', cp:'退税申请', date:'2026-04-15'},
+  {id:11, sub:'lh', cat:'prefer', level:'low', desc:'小微优惠条件临近上限未复核', amt:300, status:'closed', owner:'赵税务', cp:'小微口径', date:'2026-03-08'},
+  {id:12, sub:'xl', cat:'related', level:'high', desc:'境外关联方转让定价偏高', amt:4200, status:'fixing', owner:'陈税务', cp:'StarLink Intl. Ltd.', date:'2026-02-28'},
+  {id:13, sub:'jg', cat:'related', level:'mid', desc:'关联方资金往来未计息', amt:1900, status:'pending', owner:'孙会计', cp:'集团兄弟公司', date:'2026-05-20'},
+  {id:14, sub:'rd', cat:'related', level:'low', desc:'关联采购价格偏离公允', amt:450, status:'closed', owner:'周会计', cp:'关联供应商', date:'2026-01-15'},
+  {id:15, sub:'jg', cat:'payroll', level:'high', desc:'农民工个税未全员申报', amt:620, status:'fixing', owner:'吴会计', cp:'劳务用工', date:'2026-03-30'},
+  {id:16, sub:'lh', cat:'payroll', level:'mid', desc:'社保基数与实际工资不符', amt:380, status:'pending', owner:'郑会计', cp:'员工社保', date:'2026-06-18'},
+  {id:17, sub:'rd', cat:'payroll', level:'mid', desc:'年终奖个税计税方式错误', amt:120, status:'pending', owner:'钱会计', cp:'员工薪酬', date:'2026-05-28'},
+  {id:18, sub:'yq', cat:'payroll', level:'low', desc:'专项附加扣除凭证缺失', amt:35, status:'pending', owner:'李会计', cp:'员工个税', date:'2026-07-02'},
+];
+
+/* ============ 计算 ============ */
+function subScore(sid){
+  const s = SUB_SCORES[sid]; let t=0;
+  CAT_ORDER.forEach(k=>{ t += s[k] * CATS[k].weight/100; });
+  return t;
+}
+function subLevel(score){ return score>60?'high':(score>30?'mid':'low'); }
+function groupScore(){
+  const revTotal = SUBS.reduce((a,s)=>a+s.rev,0);
+  let t=0; SUBS.forEach(s=>{ t += subScore(s.id)*s.rev/revTotal; });
+  return t;
+}
+function fmtW(n){ return n>=10000 ? (n/10000).toFixed(2).replace(/\.?0+$/,'')+' 亿' : n.toLocaleString('zh-CN')+' 万'; }
+
+/* ============ 通用动画 ============ */
+function countUp(el, target, opts){
+  opts = opts||{};
+  const dur = opts.dur||1100, decimals = opts.decimals||0;
+  const suffix = opts.suffix||'', prefix = opts.prefix||'';
+  const start = performance.now();
+  function step(now){
+    const p = Math.min(1,(now-start)/dur);
+    const e = 1-Math.pow(1-p,3);
+    const v = target*e;
+    el.textContent = prefix + (decimals? v.toFixed(decimals) : Math.round(v).toLocaleString('zh-CN')) + suffix;
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ============ 总览 ============ */
+function renderOverview(){
+  const g = groupScore();
+  const gl = subLevel(g);
+  const rank = SUBS.map(s=>({s, score:subScore(s.id)})).sort((a,b)=>b.score-a.score);
+
+  let dist={high:0,mid:0,low:0};
+  ISSUES.forEach(i=>dist[i.level]++);
+  const distTotal = ISSUES.length;
+  const openAmt = ISSUES.filter(i=>i.status!=='closed').reduce((a,i)=>a+i.amt,0);
+  const closedCnt = ISSUES.filter(i=>i.status==='closed').length;
+
+  const el = document.getElementById('view-overview');
+  el.innerHTML = `
+  <div class="kpi-strip">
+    <div class="kpi" style="--kc:var(--cyan);--kg:var(--cyan-glow);animation-delay:.02s">
+      <div class="k-label">集团总风险得分</div>
+      <div class="k-num" id="k-score">0<small>/100</small></div>
+      <div class="k-sub">五类加权聚合 · 营收加权</div>
+    </div>
+    <div class="kpi" style="--kc:var(--red);--kg:rgba(244,63,94,.5);animation-delay:.08s">
+      <div class="k-label">高风险疑点</div>
+      <div class="k-num" id="k-high">0<small>个</small></div>
+      <div class="k-sub">需立即处置</div>
+    </div>
+    <div class="kpi" style="--kc:var(--amber);--kg:rgba(245,185,63,.5);animation-delay:.14s">
+      <div class="k-label">待处置金额</div>
+      <div class="k-num" id="k-amt">0<small>亿</small></div>
+      <div class="k-sub">待核实 + 整改中</div>
+    </div>
+    <div class="kpi" style="--kc:var(--orange);--kg:rgba(251,146,60,.5);animation-delay:.2s">
+      <div class="k-label">待核实</div>
+      <div class="k-num" id="k-pending">0<small>个</small></div>
+      <div class="k-sub">待派单核实</div>
+    </div>
+    <div class="kpi" style="--kc:var(--green);--kg:rgba(52,211,153,.5);animation-delay:.26s">
+      <div class="k-label">处置完成率</div>
+      <div class="k-num" id="k-close">0<small>%</small></div>
+      <div class="k-sub">已销号 ${closedCnt} / ${distTotal} 个</div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card" style="animation-delay:.1s">
+      <span class="c4"></span>
+      <h3>集团总风险得分</h3>
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg viewBox="0 0 168 168">
+            <circle class="track" cx="84" cy="84" r="70" fill="none" stroke-width="12"/>
+            <circle class="prog" id="gauge-prog" cx="84" cy="84" r="70" fill="none" stroke="${LV[gl].color}" stroke-width="12"
+              stroke-dasharray="439.8" stroke-dashoffset="439.8"/>
+          </svg>
+          <div class="val"><b id="gauge-val">0</b><span>RISK SCORE</span></div>
+        </div>
+        <div class="gauge-side">
+          <div><span class="pill-lg ${'lv-'+gl}" style="box-shadow:0 0 14px ${LV[gl].color}55">${LV[gl].name}风险</span></div>
+          <div class="delta">较上月 ${g>43?'▲':'▼'} ${Math.abs(g-43).toFixed(1)} 分<br>参考区间：0–30 低 · 31–60 中 · 61–100 高</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="animation-delay:.18s">
+      <span class="c4"></span>
+      <h3>风险数量分布</h3>
+      <div class="dist">
+        <div class="row">
+          <span class="dot" style="color:${LV.high.color};background:${LV.high.color}"></span>
+          <span class="lab" style="color:${LV.high.color}">高</span>
+          <div class="bar">
+            <div class="seg" style="width:0%;background:${LV.high.color}" data-w="${dist.high/distTotal*100}" onclick="goFilter('level','high')">${dist.high}</div>
+          </div>
+        </div>
+        <div class="row">
+          <span class="dot" style="color:${LV.mid.color};background:${LV.mid.color}"></span>
+          <span class="lab" style="color:${LV.mid.color}">中</span>
+          <div class="bar">
+            <div class="seg" style="width:0%;background:${LV.mid.color}" data-w="${dist.mid/distTotal*100}" onclick="goFilter('level','mid')">${dist.mid}</div>
+          </div>
+        </div>
+        <div class="row">
+          <span class="dot" style="color:${LV.low.color};background:${LV.low.color}"></span>
+          <span class="lab" style="color:${LV.low.color}">低</span>
+          <div class="bar">
+            <div class="seg" style="width:0%;background:${LV.low.color}" data-w="${dist.low/distTotal*100}" onclick="goFilter('level','low')">${dist.low}</div>
+          </div>
+        </div>
+        <div class="legend">共 <b style="font-family:var(--num);color:var(--text)">${distTotal}</b> 个疑点 · 高危 <b style="font-family:var(--num);color:${LV.high.color}">${dist.high}</b> 个需立即处置</div>
+      </div>
+    </div>
+
+    <div class="card" style="animation-delay:.26s">
+      <span class="c4"></span>
+      <h3>子公司风险排名（点击下钻）</h3>
+      <div class="rank">
+        ${rank.map((r,i)=>`
+          <div class="item" onclick="goFilter('sub','${r.s.id}')">
+            <div class="row">
+              <span class="idx">${String(i+1).padStart(2,'0')}</span>
+              <span class="name">${r.s.name}</span>
+              <div class="track"><div class="fill" style="width:0%;color:${LV[subLevel(r.score)].color};background:${LV[subLevel(r.score)].color}" data-w="${r.score}"></div></div>
+              <span class="score" style="color:${LV[subLevel(r.score)].color}">${r.score.toFixed(1)}</span>
+              <span class="tag" style="background:${LV[subLevel(r.score)].color}22;color:${LV[subLevel(r.score)].color}">${LV[subLevel(r.score)].name}</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px;animation-delay:.34s">
+    <span class="c4"></span>
+    <h3>子公司税负对标（行业参考区间）</h3>
+    <table class="ev">
+      <tr><th>子公司</th><th>行业</th><th>增值税率</th><th>营收(亿)</th><th>增值税税负率</th><th>行业参考区间</th><th>偏离</th></tr>
+      ${SUBS.map(s=>{
+        const R = {制造业:[2.5,4.5],批发零售:[0.8,2.5],建筑业:[1.5,3],软件信息:[3,6],现代服务:[2,6],高新技术:[3,6]}[s.industry];
+        const range = R[0]+'–'+R[1]+'%';
+        const dev = s.tax<R[0]?'偏低':(s.tax>R[1]?'偏高':'正常');
+        return `<tr><td style="font-weight:600">${s.name}</td><td>${s.industry}</td><td class="num-cell">${s.vat}</td><td class="num-cell">${s.rev}</td><td class="num-cell" style="font-weight:700">${s.tax.toFixed(2)}%</td><td class="num-cell">${range}</td><td>${dev==='正常'?'<span class="pill lv-low">正常</span>':'<span class="pill lv-mid">'+dev+'</span>'}</td></tr>`;
+      }).join('')}
+    </table>
+  </div>`;
+
+  /* 动画：仪表盘环 + 中心数字 */
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.getElementById('gauge-prog').style.strokeDashoffset = String(439.8 - (g/100)*439.8);
+  }));
+  countUp(document.getElementById('gauge-val'), g);
+  countUp(document.getElementById('k-score'), g);
+  countUp(document.getElementById('k-high'), dist.high);
+  countUp(document.getElementById('k-amt'), +(openAmt/10000).toFixed(2), {decimals:2});
+  countUp(document.getElementById('k-pending'), dist.pending ?? ISSUES.filter(i=>i.status==='pending').length);
+  countUp(document.getElementById('k-close'), +(closedCnt/distTotal*100).toFixed(0));
+  /* 分布条 + 排名条动画 */
+  setTimeout(()=>{
+    el.querySelectorAll('.seg').forEach(s=>{ s.style.width = s.dataset.w+'%'; });
+    el.querySelectorAll('.rank .fill').forEach(s=>{ s.style.width = s.dataset.w+'%'; });
+  }, 120);
+}
+
+/* ============ 风险分类 ============ */
+function renderCategory(){
+  const scores = {};
+  CAT_ORDER.forEach(k=>{
+    const w = CATS[k].weight/100;
+    let t=0; SUBS.forEach(s=>{ t += SUB_SCORES[s.id][k]*s.rev; });
+    scores[k] = t / SUBS.reduce((a,s)=>a+s.rev,0);
+  });
+  const issues = ISSUES;
+  const el = document.getElementById('view-category');
+  el.innerHTML = `
+    <div class="cat-grid">
+      ${CAT_ORDER.map((k,idx)=>`
+        <div class="cat-card" style="--cc:${CATS[k].color};animation-delay:${idx*0.06}s" onclick="goFilter('cat','${k}')">
+          <div class="cat-name">${CATS[k].name}</div>
+          <div class="cat-score" style="color:${CATS[k].color}">${scores[k].toFixed(0)}</div>
+          <div class="cat-meta">权重 ${CATS[k].weight}% · ${issues.filter(i=>i.cat===k).length} 个疑点</div>
+        </div>`).join('')}
+    </div>
+    ${issueList(issues, '按得分排序')}`;
+}
+
+/* ============ 处置进度 ============ */
+function renderProgress(){
+  const el = document.getElementById('view-progress');
+  const lanes = ['pending','fixing','closed'];
+  el.innerHTML = `
+    <div class="lanes">
+      ${lanes.map((st,idx)=>{
+        const list = ISSUES.filter(i=>i.status===st);
+        return `
+        <div class="lane" style="animation-delay:${idx*0.08}s">
+          <div class="lane-head">
+            <b style="color:${ST[st].color}">${ST[st].name}</b>
+            <span class="cnt" style="color:${ST[st].color}">${list.length}</span>
+          </div>
+          ${list.map(i=>issueRow(i)).join('') || '<div class="empty">暂无</div>'}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ============ 指标监控 ============ */
+function genSeries(base, vol, drift, seed){
+  const arr=[]; let v=base;
+  for(let i=0;i<12;i++){
+    const noise=(Math.sin(i*1.7+seed)*0.5+Math.cos(i*0.9+seed*2)*0.5)*vol;
+    v = base + drift*(i-6) + noise;
+    arr.push(+v.toFixed(2));
+  }
+  return arr;
+}
+const METRICS = [
+  {key:'tax', name:'增值税税负率', unit:'%', color:'#22d3ee'},
+  {key:'gm', name:'毛利率', unit:'%', color:'#34d399'},
+  {key:'cost', name:'费用率', unit:'%', color:'#a78bfa'},
+  {key:'gap', name:'收入勾稽差异', unit:'%', color:'#fb4d5c'},
+];
+function metricBase(key){
+  if(key==='tax') return SUBS.reduce((a,s)=>a+s.tax*s.rev,0)/SUBS.reduce((a,s)=>a+s.rev,0);
+  if(key==='gm') return SUBS.reduce((a,s)=>a+s.gm*s.rev,0)/SUBS.reduce((a,s)=>a+s.rev,0);
+  if(key==='cost') return SUBS.reduce((a,s)=>a+s.cost*s.rev,0)/SUBS.reduce((a,s)=>a+s.rev,0);
+  if(key==='gap') return SUBS.reduce((a,s)=>a+s.gap*s.rev,0)/SUBS.reduce((a,s)=>a+s.rev,0);
+}
+function metricSeries(key, sid){
+  if(sid==='group') return genSeries(metricBase(key), key==='gap'?1.0:0.6, key==='gap'?0.06:0.02, {tax:1,gm:2,cost:3,gap:4}[key]);
+  const s = SUBS.find(x=>x.id===sid);
+  const v = {tax:s.tax, gm:s.gm, cost:s.cost, gap:s.gap}[key];
+  return genSeries(v, key==='gap'?1.2:0.8, key==='gap'?0.08:0.03, {tax:1,gm:2,cost:3,gap:4}[key]);
+}
+function drawLine(data, color, warn){
+  const w=520, h=158, pad=30;
+  const max=Math.max(...data)*1.15, min=Math.min(...data)*0.85;
+  const range=(max-min)||1;
+  const gid = 'g'+Math.random().toString(36).slice(2,7);
+  const pts = data.map((v,i)=>[pad+i*(w-pad*2)/(data.length-1), h-pad-(v-min)/range*(h-pad*2)]);
+  const line = pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area = line+` L ${pts[pts.length-1][0]} ${h-pad} L ${pts[0][0]} ${h-pad} Z`;
+  const dots = pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="#0a1222" stroke="${color}" stroke-width="2"><title>${data[i]}%</title></circle>`).join('');
+  let warnLine='';
+  if(warn){ warnLine=`<line x1="${pad}" y1="${(h-pad-(warn-min)/range*(h-pad*2)).toFixed(1)}" x2="${w-pad}" y2="${(h-pad-(warn-min)/range*(h-pad*2)).toFixed(1)}" stroke="#fb4d5c" stroke-dasharray="4 4" stroke-width="1" opacity=".7"/>`; }
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity=".30"/><stop offset="1" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${[0,1,2,3].map(i=>`<line class="grid-line" x1="${pad}" y1="${pad+i*(h-pad*2)/3}" x2="${w-pad}" y2="${pad+i*(h-pad*2)/3}"/>`).join('')}
+    <path d="${area}" fill="url(#${gid})"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2" style="filter:drop-shadow(0 0 5px ${color})"/>
+    ${warnLine}${dots}
+  </svg>`;
+}
+function renderMetric(){
+  const el = document.getElementById('view-metric');
+  const opts = [{id:'group',name:'集团（营收加权）'},...SUBS.map(s=>({id:s.id,name:s.name}))];
+  el.innerHTML = `
+    <div class="metric-toolbar">
+      <span class="muted">监控主体：</span>
+      <select id="metric-sub">${opts.map(o=>`<option value="${o.id}">${o.name}</option>`).join('')}</select>
+      <span class="faint" style="font-size:12px">近 12 个月趋势（2025-08 ~ 2026-07）· 虚线为预警阈值</span>
+    </div>
+    <div class="metric-grid" id="metric-grid"></div>`;
+  const draw = (sid)=>{
+    const grid = document.getElementById('metric-grid');
+    grid.innerHTML = METRICS.map((m,idx)=>{
+      const data = metricSeries(m.key, sid);
+      const cur = data[data.length-1];
+      const warn = m.key==='gap' ? 5 : null;
+      const isWarn = m.key==='gap' ? cur>5 : false;
+      return `<div class="card metric-card" style="animation-delay:${idx*0.06}s">
+        <span class="c4"></span>
+        <div class="head"><b>${m.name}</b><span class="cur" style="color:${m.color}">${cur}${m.unit}</span></div>
+        ${drawLine(data, m.color, warn)}
+        ${isWarn?'<div class="flow-note" style="background:rgba(244,63,94,.1);color:#ff7a88;border-color:rgba(244,63,94,.25)">⚠ 超过预警阈值 5%，疑似申报与财报口径不一致，建议核查。</div>':''}
+      </div>`;
+    }).join('');
+  };
+  draw('group');
+  document.getElementById('metric-sub').addEventListener('change', e=>draw(e.target.value));
+}
+
+/* ============ 疑点下钻 ============ */
+let FILTER = {};
+function issueRow(i){
+  const sub = SUBS.find(s=>s.id===i.sub);
+  return `<div class="issue" onclick="openModal(${i.id})">
+    <div class="lv" style="background:${LV[i.level].color}22;color:${LV[i.level].color}">${LV[i.level].name}</div>
+    <div class="main">
+      <div class="desc">${i.desc}</div>
+      <div class="meta">${sub.name} · ${CATS[i.cat].name} · ${i.cp} · ${i.owner} · ${i.date}</div>
+    </div>
+    <div class="amt">${fmtW(i.amt)}<small>涉及金额</small></div>
+    <span class="st pill st-${i.status}">${ST[i.status].name}</span>
+  </div>`;
+}
+function issueList(issues, hint){
+  if(!issues.length) return '<div class="empty">无匹配疑点</div>';
+  return `<div class="muted" style="font-size:12px;margin-bottom:10px">${hint} · 共 <b style="font-family:var(--num);color:var(--cyan)">${issues.length}</b> 个 · 点击任一行下钻取证</div>` + issues.map(issueRow).join('');
+}
+function renderIssues(){
+  const el = document.getElementById('view-issues');
+  const cats = CAT_ORDER.map(k=>CATS[k].name);
+  const filtered = ISSUES.filter(i=>{
+    if(FILTER.cat && i.cat!==FILTER.cat) return false;
+    if(FILTER.level && i.level!==FILTER.level) return false;
+    if(FILTER.status && i.status!==FILTER.status) return false;
+    if(FILTER.sub && i.sub!==FILTER.sub) return false;
+    return true;
+  });
+  el.innerHTML = `
+    <div class="card" style="animation-delay:0">
+      <span class="c4"></span>
+      <div class="filter-bar">
+        <select id="f-cat"><option value="">全部分类</option>${cats.map(c=>`<option value="${CAT_ORDER[cats.indexOf(c)]}" ${FILTER.cat===CAT_ORDER[cats.indexOf(c)]?'selected':''}>${c}</option>`).join('')}</select>
+        <select id="f-level"><option value="">全部等级</option><option value="high" ${FILTER.level==='high'?'selected':''}>高风险</option><option value="mid" ${FILTER.level==='mid'?'selected':''}>中风险</option><option value="low" ${FILTER.level==='low'?'selected':''}>低风险</option></select>
+        <select id="f-status"><option value="">全部状态</option><option value="pending" ${FILTER.status==='pending'?'selected':''}>待核实</option><option value="fixing" ${FILTER.status==='fixing'?'selected':''}>整改中</option><option value="closed" ${FILTER.status==='closed'?'selected':''}>已销号</option></select>
+        <select id="f-sub"><option value="">全部子公司</option>${SUBS.map(s=>`<option value="${s.id}" ${FILTER.sub===s.id?'selected':''}>${s.name}</option>`).join('')}</select>
+        <button class="btn" onclick="resetFilter()">重置</button>
+      </div>
+      ${issueList(filtered,'筛选结果')}
+    </div>`;
+  ['f-cat','f-level','f-status','f-sub'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', e=>{
+      const m = {cat:'f-cat',level:'f-level',status:'f-status',sub:'f-sub'};
+      const key = Object.keys(m).find(k=>m[k]===id);
+      FILTER[key] = e.target.value || undefined;
+      renderIssues();
+    });
+  });
+}
+function resetFilter(){ FILTER={}; renderIssues(); }
+function goFilter(type, val){
+  FILTER = {[type]:val};
+  switchTab('issues');
+  renderIssues();
+}
+
+/* ============ 下钻弹窗 ============ */
+function genEvidence(i){
+  const cp = i.cp, amt = i.amt;
+  const rate = SUBS.find(s=>s.id===i.sub).vat;
+  const no = (n,p)=>String(n).padStart(p||8,'0');
+  return {
+    voucher:{col:['凭证号','日期','科目','摘要','金额'], rows:[
+      ['记-2026-'+no(i.id*3+1,4), i.date, '库存商品 / 主营业务成本', i.desc, fmtW(amt)],
+      ['记-2026-'+no(i.id*3+2,4), i.date, '应交税费—应交增值税（进项）', '对应发票入账', fmtW(Math.round(amt*0.13))],
+    ]},
+    invoice:{col:['发票号码','开票方','金额','税率','用途确认'], rows:[
+      ['044002'+no(i.id,6), cp, fmtW(amt), rate, i.status==='closed'?'已确认':'待确认'],
+    ]},
+    contract:{col:['合同编号','签约方','合同金额','签订日期','状态'], rows:[
+      ['HT-2026-'+no(i.id,4), cp, fmtW(amt), i.date, '履约中'],
+    ]},
+    flow:{col:['银行流水号','对手方','金额','交易日期','方向'], rows:[
+      ['LS'+no(i.id*7,8), cp, fmtW(amt), i.date, '支出'],
+      ['LS'+no(i.id*7+1,8), cp, fmtW(Math.round(amt*0.3)), i.date, '支出'],
+    ]},
+  };
+}
+const EV_MAP = {
+  invoice:{must:'发票 + 原始凭证', aux:'资金流水', point:'进项抵扣合规性 · 三流一致 · 用途确认'},
+  income:{must:'原始凭证 + 合同', aux:'发票', point:'收入确认时点 · 成本结转匹配 · 隐匿收入排查'},
+  prefer:{must:'原始凭证 + 合同', aux:'发票', point:'优惠条件真实性 · 研发辅助账 · 资质口径'},
+  related:{must:'合同 + 资金流水', aux:'原始凭证', point:'转让定价公允性 · 资金往来计息 · 独立交易原则'},
+  payroll:{must:'原始凭证 + 资金流水', aux:'合同', point:'全员申报 · 社保基数一致 · 计税方式正确'},
+};
+function genVerify(i){
+  const rules = [
+    {name:'合同 vs 发票', hint:'差异阈值 >5%'},
+    {name:'发票 vs 资金流水', hint:'差异阈值 >10%'},
+    {name:'凭证 vs 发票', hint:'入账一致性'},
+    {name:'申报 vs 财报', hint:'口径差异 >5%'},
+  ];
+  const bad = {invoice:0, income:1, prefer:3, related:1, payroll:2}[i.cat];
+  return rules.map((r,idx)=>{
+    if(i.status==='closed') return {name:r.name, hint:r.hint, status:'ok', text:'核验通过'};
+    if(idx===bad) return {name:r.name, hint:r.hint, status:'abnormal', text:'差异 '+(5.5+idx*1.3).toFixed(1)+'% · 超出阈值'};
+    if(i.level==='high') return {name:r.name, hint:r.hint, status:'abnormal', text:'差异 '+(5.5+idx*1.3).toFixed(1)+'% · 待复核'};
+    return {name:r.name, hint:r.hint, status:'warn', text:'待核验'};
+  });
+}
+function openModal(id){
+  const i = ISSUES.find(x=>x.id===id);
+  const map = EV_MAP[i.cat];
+  const verify = genVerify(i);
+  const sub = SUBS.find(s=>s.id===i.sub);
+  const mask = document.getElementById('mask');
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="m-head">
+      <div>
+        <div class="m-title">${i.desc}</div>
+        <div class="m-meta">
+          ${sub.name} · ${CATS[i.cat].name} · 涉及金额 <b>${fmtW(i.amt)}</b> · 责任人 ${i.owner} · 对手方 ${i.cp}
+        </div>
+        <div class="m-meta" style="margin-top:7px">
+          <span class="pill lv-${i.level}">${LV[i.level].name}风险</span>
+          <span class="pill st-${i.status}">${ST[i.status].name}</span>
+        </div>
+      </div>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+    <div class="m-body">
+      <div class="ev-map">
+        <div class="em-row"><b>证据组合映射</b> · 必看 <b>${map.must}</b> · 辅助 <b>${map.aux}</b></div>
+        <div class="em-row">核验要点：${map.point}</div>
+      </div>
+      <div class="link-keys">主数据关联键：<code>sub_id</code><code>vendor_id</code><code>contract_no</code><code>invoice_no</code><code>voucher_no</code><code>bank_seq</code></div>
+      <div class="ev-tabs">
+        <button class="ev-tab active" data-t="voucher" onclick="switchEv('voucher',${id})">原始凭证</button>
+        <button class="ev-tab" data-t="invoice" onclick="switchEv('invoice',${id})">发票</button>
+        <button class="ev-tab" data-t="contract" onclick="switchEv('contract',${id})">合同</button>
+        <button class="ev-tab" data-t="flow" onclick="switchEv('flow',${id})">资金流水</button>
+      </div>
+      <div id="ev-body"></div>
+      <div class="verify-title">三流一致核验结论</div>
+      <div class="verify">
+        ${verify.map(v=>{
+          const c = v.status==='ok' ? 'var(--green)' : (v.status==='abnormal' ? '#f43f5e' : 'var(--orange)');
+          const txt = v.status==='ok' ? '通过' : (v.status==='abnormal' ? '异常' : '待核验');
+          return `<div class="v-item">
+            <div class="v-name">${v.name} · ${v.hint}</div>
+            <div class="v-result" style="color:${c}"><span class="v-dot" style="background:${c};box-shadow:0 0 8px ${c}"></span>${txt} · ${v.text}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="flow-note">穿透逻辑：对齐金税四期「合同—发票—资金」三流一致，凭证号为账务落地痕迹，支撑业务真实性自证。</div>
+    </div>`;
+  mask.classList.add('show');
+  switchEv('voucher', id);
+}
+function switchEv(t, id){
+  document.querySelectorAll('.ev-tab').forEach(b=>b.classList.toggle('active', b.dataset.t===t));
+  const ev = genEvidence(ISSUES.find(x=>x.id===id))[t];
+  const body = document.getElementById('ev-body');
+  body.innerHTML = `<table class="ev">
+    <tr>${ev.col.map(c=>`<th>${c}</th>`).join('')}</tr>
+    ${ev.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}
+  </table>`;
+}
+function closeModal(){ document.getElementById('mask').classList.remove('show'); }
+document.getElementById('mask').addEventListener('click', e=>{ if(e.target.id==='mask') closeModal(); });
+
+/* ============ 评分模型 ============ */
+function renderModel(){
+  const el = document.getElementById('view-model');
+  const revTotal = SUBS.reduce((a,s)=>a+s.rev,0);
+  const group = groupScore();
+  const gl = subLevel(group);
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:18px">
+      <span class="c4"></span>
+      <h3>四层计算架构（可复算的公式链）</h3>
+      <div class="model-flow">
+        <div class="mf-step">
+          <div class="mf-l">L1 · ISSUE</div>
+          <div class="mf-t">疑点贡献分</div>
+          <div class="mf-d">单个疑点的风险贡献，由等级、金额规模、处置状态共同决定</div>
+          <div class="formula">等级基础分 高100/中60/低30<br>× 金额规模因子 0.6~1.2<br>× 状态因子 待核实1.0/整改中0.9/已销号0.2</div>
+        </div>
+        <div class="mf-step">
+          <div class="mf-l">L2 · CATEGORY</div>
+          <div class="mf-t">分类得分</div>
+          <div class="mf-d">基础分 + 疑点增量分。无显性疑点 ≠ 零风险，保留行业基线</div>
+          <div class="formula">基础分 + Σ 疑点贡献分(金额加权)</div>
+        </div>
+        <div class="mf-step">
+          <div class="mf-l">L3 · SUBSIDIARY</div>
+          <div class="mf-t">子公司得分</div>
+          <div class="mf-d">五类分类得分按权重加权求和</div>
+          <div class="formula">Σ 分类得分ᵢ × 权重ᵢ</div>
+        </div>
+        <div class="mf-step">
+          <div class="mf-l">L4 · GROUP</div>
+          <div class="mf-t">集团总分</div>
+          <div class="mf-d">子公司得分按营收加权（可切换利润/资产/等权）</div>
+          <div class="formula">Σ 子公司得分 × 营收占比</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="card">
+        <span class="c4"></span>
+        <h3>五类风险权重</h3>
+        <div class="dist">
+          ${CAT_ORDER.map(k=>`
+            <div class="row">
+              <span class="lab" style="width:88px;color:${CATS[k].color}">${CATS[k].name.replace('风险','')}</span>
+              <div class="bar"><div class="seg" style="width:0%;background:${CATS[k].color}" data-w="${CATS[k].weight}">${CATS[k].weight}%</div></div>
+            </div>`).join('')}
+        </div>
+        <div class="legend">合计 100% · 对应税务稽查重点频次</div>
+      </div>
+      <div class="card">
+        <span class="c4"></span>
+        <h3>动态修正因子</h3>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(244,63,94,.15);color:#ff7a88">SLA 逾期</span><div class="muted" style="font-size:12.5px">高危&gt;7天未核实 / 中危&gt;30天未整改 → 分类得分 +10</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(52,211,153,.14);color:#6ee7b7">时间衰减</span><div class="muted" style="font-size:12.5px">疑点销号满 180 天自动移出评分池</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(251,146,60,.15);color:#ffb37a">重复聚合</span><div class="muted" style="font-size:12.5px">同类疑点 ≥3 条 → 系统性风险加成 +15</div></div>
+      </div>
+      <div class="card">
+        <span class="c4"></span>
+        <h3>权重校准机制</h3>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(34,211,238,.12);color:var(--cyan)">AHP</span><div class="muted" style="font-size:12.5px">层次分析法，一致性检验 CR&lt;0.1</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(167,139,250,.12);color:#c4b5fd">德尔菲</span><div class="muted" style="font-size:12.5px">税务专家多轮匿名征询收敛</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(56,189,248,.12);color:#7dd3fc">回测</span><div class="muted" style="font-size:12.5px">历史稽查案例回测校准阈值</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(245,185,63,.12);color:var(--amber)">月度</span><div class="muted" style="font-size:12.5px">每月重校权重与参考区间</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="c4"></span>
+      <h3>子公司得分演算（可到疑点下钻验证）</h3>
+      <table class="ev">
+        <tr><th>子公司</th><th>发票 25%</th><th>收入成本 20%</th><th>优惠 15%</th><th>关联交易 20%</th><th>个税社保 20%</th><th style="text-align:right">加权总分</th><th style="text-align:center">等级</th></tr>
+        ${SUBS.map(s=>{
+          const sc = SUB_SCORES[s.id], total = subScore(s.id), lv = subLevel(total);
+          return `<tr>
+            <td style="font-weight:600">${s.name}</td>
+            ${CAT_ORDER.map(k=>`<td class="num-cell" style="color:${CATS[k].color}">${sc[k]}</td>`).join('')}
+            <td class="num-cell" style="text-align:right;font-weight:700;color:${LV[lv].color}">${total.toFixed(1)}</td>
+            <td style="text-align:center"><span class="pill lv-${lv}">${LV[lv].name}</span></td>
+          </tr>`;
+        }).join('')}
+        <tr style="background:rgba(34,211,238,.04)">
+          <td style="font-weight:700">集团（营收加权）</td>
+          ${CAT_ORDER.map(k=>{ const cw = SUBS.reduce((a,s)=>a+SUB_SCORES[s.id][k]*s.rev,0)/revTotal; return `<td class="num-cell" style="color:${CATS[k].color}">${cw.toFixed(1)}</td>`; }).join('')}
+          <td class="num-cell" style="text-align:right;font-weight:700;color:${LV[gl].color}">${group.toFixed(1)}</td>
+          <td style="text-align:center"><span class="pill lv-${gl}">${LV[gl].name}</span></td>
+        </tr>
+      </table>
+      <div class="flow-note" style="margin-top:12px">演算示例：建工建设 52.4 = 55×25% + 68×20% + 20×15% + 45×20% + 65×20%。分类「基础分」解释了为何无优惠疑点仍保留 20 分基线——无显性疑点 ≠ 零风险。</div>
+    </div>`;
+
+  setTimeout(()=>{
+    el.querySelectorAll('.seg').forEach(s=>{ s.style.width = s.dataset.w+'%'; });
+  },120);
+}
+
+/* ============ 实施路线图 ============ */
+function renderRoadmap(){
+  const el = document.getElementById('view-roadmap');
+  const phases = [
+    {p:'P0', name:'指标与数据架构', week:'2–3 周', desc:'统一主数据标准、风险评分口径校准、指标字典落地，建立六类关联键血缘基线', out:'指标字典 + 评分模型 v1.0 + 主数据规范'},
+    {p:'P1', name:'数据集成', week:'4–6 周', desc:'对接 ERP / 税务申报 / 司库 / 电子档案 / 合同台账，打通五层血缘链路', out:'数据底座（ODS + DWD + DIM）'},
+    {p:'P2', name:'预警与决策引擎', week:'3–4 周', desc:'阈值规则、SLA 超期、自动派单、动态修正因子接入', out:'预警引擎 + 派单机制'},
+    {p:'P3', name:'看板与下钻', week:'3–4 周', desc:'本方案 5 视图 + 穿透取证 + 三流一致核验，含评分模型与路线图视图', out:'税务风险驾驶舱'},
+    {p:'P4', name:'运营推广', week:'持续', desc:'责任到人、销号复核、月度复盘、权重月度重校', out:'运营机制 + 复盘报告'},
+  ];
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:18px">
+      <span class="c4"></span>
+      <h3>实施路线图 · 5 阶段 · 14–20 周（P1/P2 可与 P0 并行）</h3>
+      <div class="timeline">
+        ${phases.map(ph=>`
+          <div class="tl-item">
+            <div class="tl-head"><span class="tl-phase">${ph.p}</span><span class="tl-name">${ph.name}</span><span class="tl-week">${ph.week}</span></div>
+            <div class="tl-desc">${ph.desc}</div>
+            <div class="tl-out">产出：<b>${ph.out}</b></div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="grid g3">
+      <div class="card">
+        <span class="c4"></span>
+        <h3>成功 KPI</h3>
+        <div class="dist">
+          <div class="row"><span class="lab" style="width:110px">风险识别覆盖率</span><div class="bar"><div class="seg" style="width:0%;background:var(--green)" data-w="90">≥90%</div></div></div>
+          <div class="row"><span class="lab" style="width:110px">高危核实及时率</span><div class="bar"><div class="seg" style="width:0%;background:var(--cyan)" data-w="95">≥95%</div></div></div>
+          <div class="row"><span class="lab" style="width:110px">销号闭环率</span><div class="bar"><div class="seg" style="width:0%;background:var(--purple)" data-w="90">≥90%</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="c4"></span>
+        <h3>组织分工</h3>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(34,211,238,.12);color:var(--cyan)">税务/财务</span><div class="muted" style="font-size:12.5px">疑点核实、整改、销号复核、权重与阈值口径</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(56,189,248,.12);color:#7dd3fc">IT/数据</span><div class="muted" style="font-size:12.5px">数据集成、主数据治理、血缘链路、看板实现</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(167,139,250,.12);color:#c4b5fd">BI</span><div class="muted" style="font-size:12.5px">指标建模、可视化、下钻交互、看板运维</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(245,185,63,.12);color:var(--amber)">管理层</span><div class="muted" style="font-size:12.5px">预算审批、跨部门协调、重大风险决策</div></div>
+      </div>
+      <div class="card">
+        <span class="c4"></span>
+        <h3>关键风险与应对</h3>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(244,63,94,.15);color:#ff7a88">主数据断链</span><div class="muted" style="font-size:12.5px">六类关联键缺失 → P0 先做主数据治理</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(244,63,94,.15);color:#ff7a88">数据质量</span><div class="muted" style="font-size:12.5px">源系统口径不一致 → 统一指标字典 + 校验规则</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(244,63,94,.15);color:#ff7a88">权重主观</span><div class="muted" style="font-size:12.5px">依赖专家经验 → AHP + 回测校准</div></div>
+        <div class="fx-item"><span class="fx-badge" style="background:rgba(244,63,94,.15);color:#ff7a88">权责不清</span><div class="muted" style="font-size:12.5px">整改无人跟进 → 责任人派单 + SLA 预警</div></div>
+      </div>
+    </div>`;
+
+  setTimeout(()=>{
+    el.querySelectorAll('.seg').forEach(s=>{ s.style.width = s.dataset.w+'%'; });
+  },120);
+}
+
+/* ============ Tab 切换 ============ */
+function switchTab(v){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.v===v));
+  document.querySelectorAll('.view').forEach(vv=>vv.classList.remove('active'));
+  const view = document.getElementById('view-'+v);
+  view.classList.add('active');
+  /* 重新触发入场动画 */
+  view.querySelectorAll('.card,.kpi,.cat-card,.issue,.lane').forEach((n,i)=>{ n.style.animation='none'; void n.offsetWidth; n.style.animation=''; });
+  /* 重播分布/进度条动画 */
+  view.querySelectorAll('.seg,.rank .fill').forEach(s=>{ const w=s.dataset.w; if(w){ s.style.width='0%'; requestAnimationFrame(()=>requestAnimationFrame(()=>{ s.style.width=w+'%'; })); } });
+}
+
+/* ============ 时钟 ============ */
+function tickClock(){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  document.getElementById('clock').textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+setInterval(tickClock,1000); tickClock();
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=> switchTab(t.dataset.v));
+});
+
+/* ============ 初始化 ============ */
+renderOverview();
+renderCategory();
+renderProgress();
+renderMetric();
+renderIssues();
+renderModel();
+renderRoadmap();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "kefu-tax-cockpit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "可孚医疗集团税务风险驾驶舱 —— 全栈实现（Vue3 + ECharts + Node/TS + SQLite）",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "seed": "npm run seed -w server",
+    "dev:server": "npm run dev -w server",
+    "dev:web": "npm run dev -w web",
+    "build:web": "npm run build -w web",
+    "start:server": "npm run start -w server",
+    "dev": "concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
